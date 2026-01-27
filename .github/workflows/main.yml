@@ -27,6 +27,7 @@ jobs:
     - name: Install Flet & Dependencies
       run: |
         pip install flet
+        # Instalamos las dependencias
         pip install -r ARCHEON_MOVIL/requirements.txt
 
     - name: Setup Flutter
@@ -36,7 +37,9 @@ jobs:
 
     - name: Flet Build APK
       run: |
-        flet build apk --project-dir ARCHEON_MOVIL --verbose
+        # CORRECCIÓN: Entramos a la carpeta primero y construimos ahí
+        cd ARCHEON_MOVIL
+        flet build apk --verbose
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
