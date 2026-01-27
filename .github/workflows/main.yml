@@ -7,42 +7,44 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+    - uses: actions/checkout@v3
 
-    - name: Setup Java
-      uses: actions/setup-java@v3
+    - uses: actions/setup-java@v3
       with:
-        distribution: 'temurin'
-        java-version: '17'
+        distribution: temurin
+        java-version: 17
 
-    - name: Setup Python
-      uses: actions/setup-python@v4
+    - uses: actions/setup-python@v4
       with:
-        python-version: '3.11'
+        python-version: 3.11
 
-    - name: Install System FFmpeg
-      run: sudo apt-get install -y ffmpeg
+    - name: Cache Flutter & Gradle
+      uses: actions/cache@v3
+      with:
+        path: |
+          /opt/hostedtoolcache/flutter
+          ~/.gradle
+        key: flutter-${{ runner.os }}-3.24.0
 
-    - name: Install Dependencies
+    - name: Install FFmpeg
+      run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+    - name: Install Python deps
       run: |
         pip install -r ARCHEON_MOVIL/requirements.txt
-        # Forzamos la versión exacta para evitar preguntas
         pip install flet==0.24.1
 
-    - name: Setup Flutter
-      uses: subosito/flutter-action@v2
+    - uses: subosito/flutter-action@v2
       with:
-        # Versión exacta que corresponde a Flet 0.24.1
-        flutter-version: '3.24.0'
+        flutter-version: 3.24.0
 
-    - name: Flet Build APK
+    - name: Build APK
       run: |
         cd ARCHEON_MOVIL
-        flet build apk --verbose
+        flet build apk --no-clean
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
