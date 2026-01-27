@@ -24,24 +24,27 @@ jobs:
       with:
         python-version: '3.11'
 
-    - name: Install Flet & Dependencies
+    # PASO EXTRA: Instalar FFmpeg en el sistema del robot (por si acaso)
+    - name: Install System FFmpeg
+      run: sudo apt-get install -y ffmpeg
+
+    - name: Install Dependencies
       run: |
-        # 1. Instalamos PRIMERO tus requisitos (requests, etc)
+        # 1. Instalamos tus librerías
         pip install -r ARCHEON_MOVIL/requirements.txt
-        # 2. Forzamos la instalación de TU versión exacta de Flet para evitar sorpresas
+        # 2. OBLIGAMOS a usar la versión compatible con tu código
         pip install flet==0.24.1
 
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        # Usamos la versión exacta que Flet 0.24.1 necesita (3.24.0)
+        # Usamos la versión exacta que Flet 0.24.1 necesita (evita preguntas)
         flutter-version: '3.24.0'
 
     - name: Flet Build APK
       run: |
-        # Entramos a la carpeta
         cd ARCHEON_MOVIL
-        # Usamos 'yes' para responder automáticamente "sí" a cualquier pregunta del sistema
+        # El comando 'yes' responde "s" automáticamente a todo
         yes | flet build apk --verbose
 
     - name: Upload APK
