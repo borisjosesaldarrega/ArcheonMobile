@@ -26,20 +26,23 @@ jobs:
 
     - name: Install Flet & Dependencies
       run: |
-        pip install flet
-        # Instalamos las dependencias
+        # 1. Instalamos PRIMERO tus requisitos (requests, etc)
         pip install -r ARCHEON_MOVIL/requirements.txt
+        # 2. Forzamos la instalación de TU versión exacta de Flet para evitar sorpresas
+        pip install flet==0.24.1
 
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.22.0'
+        # Usamos la versión exacta que Flet 0.24.1 necesita (3.24.0)
+        flutter-version: '3.24.0'
 
     - name: Flet Build APK
       run: |
-        # CORRECCIÓN: Entramos a la carpeta primero y construimos ahí
+        # Entramos a la carpeta
         cd ARCHEON_MOVIL
-        flet build apk --verbose
+        # Usamos 'yes' para responder automáticamente "sí" a cualquier pregunta del sistema
+        yes | flet build apk --verbose
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
