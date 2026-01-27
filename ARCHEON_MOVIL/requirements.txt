@@ -1,0 +1,6 @@
+flet
+google-generativeai
+yt-dlp
+gTTS
+supabase
+requests
