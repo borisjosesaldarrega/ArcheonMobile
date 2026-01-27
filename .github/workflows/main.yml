@@ -5,7 +5,7 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
-jobs: 
+jobs:
   build:
     runs-on: ubuntu-latest
 
@@ -24,28 +24,24 @@ jobs:
       with:
         python-version: '3.11'
 
-    # PASO EXTRA: Instalar FFmpeg en el sistema del robot (por si acaso)
     - name: Install System FFmpeg
       run: sudo apt-get install -y ffmpeg
 
     - name: Install Dependencies
       run: |
-        # 1. Instalamos tus librerías
         pip install -r ARCHEON_MOVIL/requirements.txt
-        # 2. OBLIGAMOS a usar la versión compatible con tu código
         pip install flet==0.24.1
 
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        # Usamos la versión exacta que Flet 0.24.1 necesita (evita preguntas)
         flutter-version: '3.24.0'
 
     - name: Flet Build APK
       run: |
         cd ARCHEON_MOVIL
-        # El comando 'yes' responde "s" automáticamente a todo
-        yes | flet build apk --verbose
+        # QUITEMOS EL YES, YA NO HACE FALTA Y CONGELA LA DESCARGA
+        flet build apk --verbose
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
