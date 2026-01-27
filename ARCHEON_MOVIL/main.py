@@ -3,7 +3,8 @@ import os
 import sys
 import time
 import threading
-import google.generativeai as genai
+import requests
+import base64
 import json
 import uuid
 import yt_dlp
@@ -33,13 +34,9 @@ except ImportError as e:
 os.environ["GOOGLE_API_KEY"] = "AIzaSyDzopiLUB2ZRLfu1vgFy5XpSoBgnZQXTzA"
 os.environ["OPENROUTER_API_KEY"] = "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"
 
-# Configurar Gemini
+# Configurar Gemini (VERSIÓN LIGERA)
 API_KEY = os.environ.get("GOOGLE_API_KEY")
-if API_KEY:
-    genai.configure(api_key=API_KEY)
-    GEMINI_ACTIVO = True
-else:
-    GEMINI_ACTIVO = False
+GEMINI_ACTIVO = bool(API_KEY)  # Solo verificamos si hay llave
 
 # --- ESTILOS ---
 C_BG = "#050505"
@@ -312,18 +309,47 @@ class MobileNeuro:
         if len(texto_usuario) > 60:
             es_codigo_o_largo = True
             
-        # 3. VISIÓN (imagen)
+        # 3. VISIÓN (imagen) - VERSIÓN COMPATIBLE CON ANDROID
         if imagen_path and GEMINI_ACTIVO:
             try:
-                model = genai.GenerativeModel('gemini-2.0-flash-exp')
-                with open(imagen_path, "rb") as f:
-                    img_data = f.read()
-                prompt = f"Analiza esta imagen. El usuario pregunta: '{texto_usuario}'. Responde en español de manera concisa."
-                res = model.generate_content([prompt, {"mime_type": "image/jpeg", "data": img_data}])
-                response["texto"] = res.text
+                print(f"📸 Procesando imagen: {imagen_path}")
+                api_key = os.environ.get("GOOGLE_API_KEY")
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+                headers = {'Content-Type': 'application/json'}
+                
+                # Convertimos la imagen a Base64 manualmente
+                with open(imagen_path, "rb") as img_file:
+                    b64_data = base64.b64encode(img_file.read()).decode('utf-8')
+                
+                prompt_vision = f"Analiza esta imagen. El usuario pregunta: '{texto_usuario}'. Responde en español de manera concisa."
+                
+                # Payload con la imagen incrustada
+                data = {
+                    "contents": [{
+                        "parts": [
+                            {"text": prompt_vision},
+                            {
+                                "inline_data": {
+                                    "mime_type": "image/jpeg", 
+                                    "data": b64_data
+                                }
+                            }
+                        ]
+                    }]
+                }
+                
+                res = requests.post(url, headers=headers, json=data)
+                
+                if res.status_code == 200:
+                    response["texto"] = res.json()['candidates'][0]['content']['parts'][0]['text']
+                else:
+                    response["texto"] = f"⚠️ Error visual: {res.status_code}"
+                    response["error"] = True
+                    
                 return response
             except Exception as e:
-                response["texto"] = f"⚠️ Error visual: {str(e)[:100]}"
+                print(f"Error visión: {e}")
+                response["texto"] = f"⚠️ Error procesando imagen."
                 response["error"] = True
                 return response
         
@@ -491,11 +517,29 @@ Usuario: {texto_usuario}
         
         if ia_seleccionada == "gemini" and GEMINI_ACTIVO:
             try:
-                model = genai.GenerativeModel('gemini-2.0-flash-exp')
-                res = model.generate_content(sys_prompt)
-                respuesta = res.text
+                api_key = os.environ.get("GOOGLE_API_KEY")
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+                headers = {'Content-Type': 'application/json'}
+                
+                # Enviamos solo texto
+                data = {
+                    "contents": [{
+                        "parts": [{"text": sys_prompt}]
+                    }]
+                }
+                
+                res = requests.post(url, headers=headers, json=data)
+                
+                if res.status_code == 200:
+                    respuesta = res.json()['candidates'][0]['content']['parts'][0]['text']
+                else:
+                    print(f"Error API: {res.text}")
+                    respuesta = f"⚠️ Error Gemini API: {res.status_code}"
+                    ia_seleccionada = "openrouter" # Fallback
+                    
             except Exception as e:
-                respuesta = "⚠️ Error Gemini, cambiando a respaldo..."
+                print(f"Error Gemini REST: {e}")
+                respuesta = "⚠️ Error de conexión con Gemini."
                 ia_seleccionada = "openrouter"
 
         if ia_seleccionada == "openrouter":
