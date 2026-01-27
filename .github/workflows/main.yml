@@ -1,0 +1,45 @@
+name: Build Archeon APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install Flet & Dependencies
+      run: |
+        pip install flet
+        pip install -r ARCHEON_MOVIL/requirements.txt
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.22.0'
+
+    - name: Flet Build APK
+      run: |
+        flet build apk --project-dir ARCHEON_MOVIL --verbose
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: Archeon-APK
+        path: ARCHEON_MOVIL/build/apk/app-release.apk
