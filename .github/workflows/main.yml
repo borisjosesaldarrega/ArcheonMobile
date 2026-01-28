@@ -21,6 +21,7 @@ jobs:
       with:
         python-version: 3.11
 
+    # Cache para que vaya más rápido (Buena idea dejarlo)
     - name: Cache Flutter & Gradle
       uses: actions/cache@v3
       with:
@@ -44,10 +45,13 @@ jobs:
     - name: Build APK
       run: |
         cd ARCHEON_MOVIL
-        flet build apk --no-clean
+        # CAMBIO AQUÍ: Quitamos --no-clean y ponemos --verbose para ver qué hace
+        flet build apk --verbose
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: Archeon-APK
         path: ARCHEON_MOVIL/build/apk/app-release.apk
+
+        
