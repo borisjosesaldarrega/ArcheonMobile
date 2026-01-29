@@ -30,11 +30,7 @@ except ImportError as e:
     ArcheonReasoner = None
     ContextMemory = None
 
-# --- CREDENCIALES ---
-os.environ["GOOGLE_API_KEY"] = "AIzaSyDzopiLUB2ZRLfu1vgFy5XpSoBgnZQXTzA"
-os.environ["OPENROUTER_API_KEY"] = "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"
 
-# Configurar Gemini (VERSIÓN LIGERA)
 API_KEY = os.environ.get("GOOGLE_API_KEY")
 GEMINI_ACTIVO = bool(API_KEY)  # Solo verificamos si hay llave
 
@@ -2214,3 +2210,4 @@ if __name__ == "__main__":
         assets_dir="assets",
         view=ft.AppView.FLET_APP
     )
+
